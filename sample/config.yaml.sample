@@ -1,0 +1,12 @@
+---
+global:
+  host: irc.example.com
+  nick: samplebot
+  channels:
+    - "#sample"
+  log:
+    level: info
+
+plugins:
+  - module: Echo
+

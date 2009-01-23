@@ -1,0 +1,27 @@
+This is Perl module App::Bot::IRC.
+
+INSTALLATION
+
+App::Bot::IRC installation is straightforward. If your CPAN shell is set up,
+you should just be able to do
+
+    % cpan App::Bot::IRC
+
+Download it, unpack it, then build it as per the usual:
+
+    % perl Makefile.PL
+    % make && make test
+
+Then install it:
+
+    % make install
+
+DOCUMENTATION
+
+App::Bot::IRC documentation is available as in POD. So you can do:
+
+    % perldoc App::Bot::IRC
+
+to read the documentation online with your favorite pager.
+
+NAKAGAWA Masaki
