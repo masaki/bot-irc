@@ -76,7 +76,7 @@ sub handle_public {
     my $agent = $poe->object->agent;
 
     my ($who, $where, $what) = @{ $poe->args };
-    eval { $agent->fire(privmsg => [ split /!/, $who ]->[0], $where->[0], $what) };
+    $agent->run_hook(PRIVMSG => [ split /!/, $who ]->[0], $where->[0], $what);
 }
 
 sub handle_msg {
@@ -84,7 +84,7 @@ sub handle_msg {
     my $agent = $poe->object->agent;
 
     my ($who, $where, $what) = @{ $poe->args };
-    eval { $agent->fire(talk => [ split /!/, $who ]->[0], $what) };
+    $agent->run_hook(TALK => [ split /!/, $who ]->[0], $what);
 }
 
 sub handle_reconnect {

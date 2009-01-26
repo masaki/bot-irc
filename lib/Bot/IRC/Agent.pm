@@ -55,30 +55,33 @@ has 'event' => (
     handles => ['yield'],
 );
 
+# FIXME: MouseX::Plaggerize, MouseX::Trigger
+has 'hooks' => (
+    is      => 'rw',
+    isa     => 'HashRef',
+    lazy    => 1,
+    default => sub { +{} },
+);
+
 has 'log' => (
     is  => 'rw',
     isa => 'Bot::IRC::Log',
 );
 
-has 'plugins' => (
-    is      => 'rw',
-    isa     => 'ArrayRef',
-    default => sub { [] },
-);
-
 sub load_plugins {
-    my ($self, $plugins) = @_;
-    $self->load_plugin($_) for @$plugins;
+    my ($self, $args) = @_;
+    for my $config (@{ $args || [] }) {
+        $self->load_plugin($config);
+    }
 }
 
 sub load_plugin {
-    my ($self, $config) = @_;
+    my ($self, $args) = @_;
 
-    my $module = delete $config->{module};
-    if ($module !~ s/^\+//) {
-        $module =~ s/^Bot::IRC::Plugin:://;
-        $module = "Bot::IRC::Plugin::$module";
-    }
+    $args = { module => $args } unless ref $args;
+
+    my $module = $args->{module};
+    $module = $self->resolve_plugin($module, 'Bot::IRC');
 
     eval {
         Mouse::load_class($module);
@@ -87,40 +90,50 @@ sub load_plugin {
         $self->log->error("Failed to load plugin: $module $@");
     }
     else {
-        my $plugin = $module->new(
-            $config->{config} ? (config => $config->{config}) : (),
-        );
-        push @{ $self->plugins }, $self->setup_plugin($plugin);
+        my $plugin = $module->new(%{ $args->{config} || {} });
+        $plugin->register($self);
+    }
+}
+
+sub resolve_plugin {
+    my ($self, $module, $base) = @_;
+
+    $base ||= blessed $self; # TODO: _plugin_app_ns ?
+    my $plugin_ns = 'Plugin'; # TODO: _plugin_ns ?
+
+    return ($module =~ /^\+(.*)$/) ? $1 : "${base}::${plugin_ns}::${module}";
+}
+
+sub register_hook {
+    my ($self, @hooks) = @_;
+
+    while (my ($hook, $plugin, $code) = splice @hooks, 0, 3) {
+        $self->hooks->{$hook} ||= [];
+        push @{ $self->hooks->{$hook} }, +{
+            plugin => $plugin,
+            code   => $code,
+        };
+    }
+}
+
+sub run_hook {
+    my ($self, $hook, @args) = @_;
+
+    return unless my $hooks = $self->hooks->{$hook};
+
+    for my $hook (@$hooks) {
+        $hook->{code}->($hook->{plugin}, $self, @args);
     }
 }
 
 {
     my @commands = qw(ctcp mode notice privmsg topic);
 
-    sub setup_plugin {
-        my ($self, $plugin) = @_;
-
-        for my $command (@commands) {
-            $plugin->meta->add_method($command => sub {
-                shift;
-                $self->event->yield($command => @_);
-            });
-        }
-
-        $plugin;
-    }
-}
-
-sub fire {
-    my ($self, $event, @args) = @_;
-
-    $self->log->debug("fire event: $event");
-
-    my $method = "on_${event}";
-    for my $plugin (@{ $self->plugins }) {
-        if ($plugin->can($method)) {
-            $plugin->$method(@args);
-        }
+    for my $command (@commands) {
+        __PACKAGE__->meta->add_method($command, sub {
+            my ($self, @args) = @_;
+            $self->yield($command, @args);
+        });
     }
 }
 

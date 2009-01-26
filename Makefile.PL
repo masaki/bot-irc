@@ -4,11 +4,11 @@ all_from 'lib/Bot/IRC.pm';
 
 requires 'Mouse' => 0.14;
 requires 'MouseX::Log::Dispatch::Config';
+requires 'parent';
 requires 'POE';
 requires 'POE::Component::IRC';
 requires 'POE::Sugar::Args';
 requires 'Config::Any';
-requires 'Storable';
 requires 'User';
 
 tests 't/*.t';
