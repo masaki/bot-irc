@@ -2,7 +2,7 @@ package Bot::IRC::Plugin::Echo;
 
 use Bot::IRC::Plugin;
 
-sub on_msg {
+sub on_privmsg {
     my ($self, $from, $channel, $body) = @_;
 
     my $message = sprintf "%s said: %s", $from, $body;

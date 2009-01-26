@@ -76,7 +76,7 @@ sub handle_public {
     my $agent = $poe->object->agent;
 
     my ($who, $where, $what) = @{ $poe->args };
-    eval { $agent->fire(msg => [ split /!/, $who ]->[0], $where->[0], $what) };
+    eval { $agent->fire(privmsg => [ split /!/, $who ]->[0], $where->[0], $what) };
 }
 
 sub handle_msg {
