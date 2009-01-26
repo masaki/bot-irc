@@ -72,19 +72,21 @@ sub handle_nick_taken {
 }
 
 sub handle_public {
-    my $poe   = sweet_args;
-    my $agent = $poe->object->agent;
+    my $poe  = sweet_args;
+    my $self = $poe->object;
 
     my ($who, $where, $what) = @{ $poe->args };
-    $agent->run_hook(PRIVMSG => [ split /!/, $who ]->[0], $where->[0], $what);
+    my $args = $self->_filter_input($who, $where, $what);
+    $self->agent->run_hook(PRIVMSG => @$args);
 }
 
 sub handle_msg {
-    my $poe   = sweet_args;
-    my $agent = $poe->object->agent;
+    my $poe  = sweet_args;
+    my $self = $poe->object;
 
     my ($who, $where, $what) = @{ $poe->args };
-    $agent->run_hook(TALK => [ split /!/, $who ]->[0], $what);
+    my $args = $self->_filter_input($who, $where, $what);
+    $self->agent->run_hook(TALK => $args->[0], $args->[2]);
 }
 
 sub handle_reconnect {
@@ -101,6 +103,17 @@ sub handle_autoping {
 
     $agent->yield(userhost => $agent->nick);
     $poe->kernel->delay(autoping => 300);
+}
+
+sub _filter_input {
+    my ($self, $who, $where, $what) = @_;
+
+    $who = [ split /!/ => $who ]->[0];
+    $where = $where->[0];
+    $what =~ s/^\s+//;
+    $what =~ s/\s+$//;
+
+    return [ $who, $where, $what ];
 }
 
 no Mouse; __PACKAGE__->meta->make_immutable; 1;

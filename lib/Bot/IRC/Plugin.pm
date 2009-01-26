@@ -16,7 +16,7 @@ our @EXPORT = qw(hook register);
     sub register {
         my ($self, $context) = @_;
         for my $hook (@{ $hooks->{blessed $self} || [] }) {
-            $context->register_hook($hook->{name}, $self, $hook->{code});
+            $context->register_hook($self, $hook->{name}, $hook->{code});
         }
     }
 }

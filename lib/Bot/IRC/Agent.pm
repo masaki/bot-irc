@@ -4,6 +4,8 @@ use Mouse;
 use POE::Component::IRC;
 use User;
 
+with 'MouseX::Object::Hookable';
+
 has 'host' => (
     is       => 'rw',
     isa      => 'Str',
@@ -55,14 +57,6 @@ has 'event' => (
     handles => ['yield'],
 );
 
-# FIXME: MouseX::Plaggerize, MouseX::Trigger
-has 'hooks' => (
-    is      => 'rw',
-    isa     => 'HashRef',
-    lazy    => 1,
-    default => sub { +{} },
-);
-
 has 'log' => (
     is  => 'rw',
     isa => 'Bot::IRC::Log',
@@ -102,28 +96,6 @@ sub resolve_plugin {
     my $plugin_ns = 'Plugin'; # TODO: _plugin_ns ?
 
     return ($module =~ /^\+(.*)$/) ? $1 : "${base}::${plugin_ns}::${module}";
-}
-
-sub register_hook {
-    my ($self, @hooks) = @_;
-
-    while (my ($hook, $plugin, $code) = splice @hooks, 0, 3) {
-        $self->hooks->{$hook} ||= [];
-        push @{ $self->hooks->{$hook} }, +{
-            plugin => $plugin,
-            code   => $code,
-        };
-    }
-}
-
-sub run_hook {
-    my ($self, $hook, @args) = @_;
-
-    return unless my $hooks = $self->hooks->{$hook};
-
-    for my $hook (@$hooks) {
-        $hook->{code}->($hook->{plugin}, $self, @args);
-    }
 }
 
 {
