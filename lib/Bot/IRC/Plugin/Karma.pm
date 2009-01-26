@@ -1,8 +1,25 @@
 package Bot::IRC::Plugin::Karma;
 
 use Bot::IRC::Plugin;
+use MouseX::Types::Path::Class;
+use Path::Class::File;
+use YAML;
 
-my $karma = {};
+has 'datafile' => (
+    is      => 'rw',
+    isa     => 'Path::Class::File',
+    lazy    => 1,
+    default => sub { Path::Class::File->new('plusplus.yaml') },
+    coerce  => 1,
+);
+
+sub BUILD {
+    my $self = shift;
+
+    unless (-f $self->datafile) {
+        $self->datafile->openw;
+    }
+}
 
 hook 'PRIVMSG' => sub {
     my ($self, $bot, $from, $channel, $body) = @_;
@@ -19,7 +36,10 @@ hook 'PRIVMSG' => sub {
     elsif ($body =~ /^($re|\S+)(\+\+|--)/) {
         my ($nick, $op) = ($self->trim($1), $2);
 
-        ($karma->{$nick} ||= { '++' => 0, '--' => 0 })->{$op}++;
+        my $karma = YAML::LoadFile($self->datafile);
+        ($karma->{$channel}->{$nick} ||= { '++' => 0, '--' => 0 })->{$op}++;
+        YAML::DumpFile($self->datafile, $karma);
+
         $self->notice($bot, $nick, $channel);
     }
 };
@@ -27,8 +47,10 @@ hook 'PRIVMSG' => sub {
 sub notice {
     my ($self, $bot, $nick, $channel) = @_;
 
-    my $plus  = $karma->{$nick}->{'++'} || 0;
-    my $minus = $karma->{$nick}->{'--'} || 0;
+    my $karma = YAML::LoadFile($self->datafile);
+
+    my $plus  = $karma->{$channel}->{$nick}->{'++'} || 0;
+    my $minus = $karma->{$channel}->{$nick}->{'--'} || 0;
 
     my $message = sprintf '%s: %d (%d++ %d--)', $nick, ($plus - $minus), $plus, $minus;
     $bot->notice($channel => $message);
