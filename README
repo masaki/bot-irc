@@ -1,11 +1,11 @@
-This is Perl module App::Bot::IRC.
+This is Perl module Bot::IRC.
 
 INSTALLATION
 
-App::Bot::IRC installation is straightforward. If your CPAN shell is set up,
+Bot::IRC installation is straightforward. If your CPAN shell is set up,
 you should just be able to do
 
-    % cpan App::Bot::IRC
+    % cpan Bot::IRC
 
 Download it, unpack it, then build it as per the usual:
 
@@ -18,9 +18,9 @@ Then install it:
 
 DOCUMENTATION
 
-App::Bot::IRC documentation is available as in POD. So you can do:
+Bot::IRC documentation is available as in POD. So you can do:
 
-    % perldoc App::Bot::IRC
+    % perldoc Bot::IRC
 
 to read the documentation online with your favorite pager.
 

@@ -18,4 +18,4 @@ local $ENV{LANG} = 'C';
 all_pod_files_spelling_ok('lib');
 __DATA__
 NAKAGAWA Masaki
-App::Bot::IRC
+Bot::IRC
