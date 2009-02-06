@@ -9,7 +9,7 @@ has 'datafile' => (
     is      => 'rw',
     isa     => 'Path::Class::File',
     lazy    => 1,
-    default => sub { Path::Class::File->new('plusplus.yaml') },
+    default => sub { Path::Class::File->new('karma.yaml') },
     coerce  => 1,
 );
 
